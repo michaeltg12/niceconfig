@@ -1,4 +1,5 @@
 import os
+import logging
 
 from collections.abc import Sequence, Mapping
 from pathlib import Path
@@ -41,10 +42,11 @@ class ConfigDict(dict):
 
 
 class Config(object):
-    def __init__(self, source, defaults, schema=None):
+    def __init__(self, source, defaults, schema=None, env_prefix=''):
         # setting self.store this way is necessary to avoid triggering this
         # class' overridden __setattr__ which uses self.store causing infinite recursion
         self.__dict__['store'] = ConfigDict()
+        self.__dict__['env_prefix'] = env_prefix
         self.store.update(defaults)
 
         if isinstance(source, str):
@@ -58,6 +60,7 @@ class Config(object):
         for config, value in self.flatten(defaults):
             env_var = self.get_env_var_name(config)
             if env_var in os.environ:
+                logging.debug(f'Overriding {config} from {env_var}')
                 self.store[config] = os.environ[env_var]
 
     def flatten(self, mapping):
@@ -71,6 +74,8 @@ class Config(object):
 
     def get_env_var_name(self, path):
         '''Given a list, return a valid environment variable name.'''
+        if self.env_prefix:
+            path.insert(0, self.env_prefix)
         return '_'.join(part.upper() for part in path)
 
     def write_env_file(self, file_path):
