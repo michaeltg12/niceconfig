@@ -89,7 +89,7 @@ class Config(object):
     def write_yaml(self, file_path):
         with open(file_path, 'w') as output:
             yml = strictyaml.as_document(self.store)
-            output.write(yml)
+            output.write(yml.as_yaml())
 
     def __getattr__(self, attr):
         return self.store[attr]
