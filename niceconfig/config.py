@@ -78,18 +78,17 @@ class Config(object):
             path.insert(0, self.env_prefix)
         return '_'.join(part.upper() for part in path)
 
-    def write_env_file(self, file_path):
+    def as_env_file(self):
         '''Write the current config to a sourcable bash script.'''
-        with open(file_path, 'w') as output:
-            for config, value in self.flatten(self.store):
-                if isinstance(value, str):  # only strings can be set with env vars
-                    env_var = self.get_env_var_name(config)
-                    output.write(f'export {env_var}={value}\n')
+        script = ''
+        for config, value in self.flatten(self.store):
+            if isinstance(value, str):  # only strings can be set with env vars
+                env_var = self.get_env_var_name(config)
+                script += f'export {env_var}={value}\n'
+        return script
 
-    def write_yaml(self, file_path):
-        with open(file_path, 'w') as output:
-            yml = strictyaml.as_document(self.store)
-            output.write(yml.as_yaml())
+    def as_yaml(self):
+        return strictyaml.as_document(self.store).as_yaml()
 
     def __getattr__(self, attr):
         return self.store[attr]
