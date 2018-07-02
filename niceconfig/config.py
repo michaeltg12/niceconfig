@@ -74,9 +74,7 @@ class Config(object):
 
     def get_env_var_name(self, path):
         '''Given a list, return a valid environment variable name.'''
-        if self.env_prefix:
-            path.insert(0, self.env_prefix)
-        return '_'.join(part.upper() for part in path)
+        return f'{self.env_prefix.upper()}_' + '_'.join(part.upper() for part in path)
 
     def as_env_file(self):
         '''Write the current config to a sourcable bash script.'''
