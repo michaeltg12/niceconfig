@@ -8,6 +8,7 @@ import strictyaml
 
 
 def rsetattr(base, path, value):
+    '''Given a list of path nodes, recursively find and set the target attribute or key.'''
     path, *child_paths = path
 
     if child_paths:
@@ -42,20 +43,24 @@ class ConfigDict(dict):
 
 
 class Config(object):
-    def __init__(self, source, defaults, schema=None, env_prefix=''):
+    def __init__(self, files, defaults, schema=None, env_prefix=''):
         # setting self.store this way is necessary to avoid triggering this
         # class' overridden __setattr__ which uses self.store causing infinite recursion
         self.__dict__['store'] = ConfigDict()
         self.__dict__['env_prefix'] = env_prefix
         self.store.update(defaults)
 
-        if isinstance(source, str):
-            source_path = Path(source)
+        if isinstance(files, str):
+            files = [files, ]
+
+        # Go through the list backward so the first file listed will take
+        # precedence, falling back to the second, third, fourth, etc.
+        for config_file in reversed(files):
+            source_path = Path(config_file)
             if source_path.is_file():
+                logging.debug(f'Overriding with config from {config_file}')
                 content = source_path.read_text()
                 self.store.update(strictyaml.load(content, schema))
-        elif isinstance(source, Mapping):
-            self.store.update(source)
 
         for config, value in self.flatten(defaults):
             env_var = self.get_env_var_name(config)
