@@ -50,7 +50,7 @@ class Config(object):
         self.__dict__['env_prefix'] = env_prefix
         self.store.update(defaults)
 
-        if isinstance(files, str):
+        if isinstance(files, (str, Path)):
             files = [files, ]
 
         # Go through the list backward so the first file listed will take
