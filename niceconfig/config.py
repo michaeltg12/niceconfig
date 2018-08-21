@@ -1,10 +1,9 @@
-import os
 import logging
-
-from collections.abc import Sequence, Mapping
+import os
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 
-import strictyaml
+import yaml
 
 
 def rsetattr(base, path, value):
@@ -22,7 +21,7 @@ def rsetattr(base, path, value):
         base[path] = value
 
 
-class ConfigDict(dict):
+class ConfigDict(dict, yaml.YAMLObject):
     '''Dict that can take a list as a key, recurse down its nested structure to get/set the value.'''
 
     def __getitem__(self, keys):
@@ -60,7 +59,7 @@ class Config(object):
             if source_path.is_file():
                 logging.debug(f'Overriding with config from {config_file}')
                 content = source_path.read_text()
-                self.store.update(strictyaml.load(content, schema).data)
+                self.store.update(yaml.safe_load(content, schema).data)
 
         for config, value in self.flatten(defaults):
             env_var = self.get_env_var_name(config)
@@ -91,7 +90,7 @@ class Config(object):
         return script
 
     def as_yaml(self):
-        return strictyaml.as_document(self.store).as_yaml()
+        return yaml.dump(self.store, canonical=True, default_flow_style=False)
 
     def __getattr__(self, attr):
         return self.store[attr]
