@@ -59,7 +59,7 @@ class Config(object):
             if source_path.is_file():
                 logging.debug(f'Overriding with config from {config_file}')
                 content = source_path.read_text()
-                self.store.update(yaml.safe_load(content, schema).data)
+                self.store.update(yaml.safe_load(content))
 
         for config, value in self.flatten(defaults):
             env_var = self.get_env_var_name(config)
